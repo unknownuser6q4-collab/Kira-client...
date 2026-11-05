@@ -4,6 +4,7 @@
     <string name="settings_title">Settings</string>
     <string name="percent_value">%1$d%%</string>
     <string name="back">Back</string>
+    <string name="back_arrow">← Back</string>
     <string name="channel_name">Moonlight overlay</string>
     <string name="notification_title">Moonlight overlay active</string>
     <string name="notification_text">Tap to open Moonlight. The moon button floats over Minecraft.</string>

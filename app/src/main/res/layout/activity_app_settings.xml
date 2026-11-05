@@ -19,7 +19,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
-            android:text="← @string/back"
+            android:text="@string/back_arrow"
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />
 
