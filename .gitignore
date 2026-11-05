@@ -1,0 +1,17 @@
+.gradle/
+build/
+**/build/
+.idea/
+*.iml
+local.properties
+.externalNativeBuild/
+.cxx/
+.DS_Store
+*.hprof
+
+# Legacy upload artefact superseded by the source tree.
+Moonlight.zip
+.extracted/
+
+# Locally built APKs shared from the chat workspace.
+artifacts/

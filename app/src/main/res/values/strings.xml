@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Moonlight</string>
+    <string name="settings_title">Settings</string>
+    <string name="percent_value">%1$d%%</string>
+    <string name="back">Back</string>
+    <string name="channel_name">Moonlight overlay</string>
+    <string name="notification_title">Moonlight overlay active</string>
+    <string name="notification_text">Tap to open Moonlight. The moon button floats over Minecraft.</string>
+    <string name="notification_stop">Stop</string>
+    <string name="overlay_permission_title">Overlay permission</string>
+    <string name="minecraft_state_title">Minecraft Bedrock</string>
+    <string name="hook_state_title">In-game hook</string>
+    <string name="start_client">Start floating client</string>
+    <string name="stop_client">Stop floating client</string>
+    <string name="open_settings">Client settings</string>
+    <string name="launch_minecraft">Launch Minecraft</string>
+    <string name="hook_note">World modules (ESP, Freecam, Fullbright, base finding) run inside the Minecraft process. Android blocks one app from reading or drawing another app\'s world, so those modules stay inactive until an in-game hook is attached. See the README for the two supported hook paths.</string>
+</resources>
