@@ -55,7 +55,8 @@ class ClickGuiView(context: Context, private val store: ConfigStore) : View(cont
     // ------------------------------------------------------------------ paints
 
     private val density = resources.displayMetrics.density
-    private val scaledDensity = resources.displayMetrics.scaledDensity
+    // displayMetrics.scaledDensity is deprecated; it is just density * fontScale.
+    private val scaledDensity = density * resources.configuration.fontScale
 
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {

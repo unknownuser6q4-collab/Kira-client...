@@ -15,3 +15,8 @@ Moonlight.zip
 
 # Locally built APKs shared from the chat workspace.
 artifacts/
+
+# Third-party client archive (Lumina/Pixie) is not part of this project.
+LuminaClient*.zip
+.extracted/
+.build-logs/

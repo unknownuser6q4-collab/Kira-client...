@@ -75,9 +75,7 @@ Highlights:
   pistons, barrels, item frames, crafters, brewing stands), each with its own color.
 - **Block ESP** has its own block list, box style and tracer settings.
 - **Freecam** exposes speed, no-clip, player lock, smooth camera, camera HUD,
-  joystick size, button size, control opacity, joystick side and a reset action.
-- **Freelook** has hold/toggle activation, sensitivity, sensitivity, and an eye
-  shortcut that appears as a draggable bubble when the module is on.
+  joystick size, button size, control opacity, joystick side and a reset action.- **Freelook** has hold/toggle activation, a sensitivity slider, and an eye shortcut that appears as a draggable bubble when the module is on.
 - **Base finding** modules carry distance, threshold, tracer, diagnostics and
   player-modification filters.
 - **Configs** exports and imports the whole configuration as JSON.
@@ -148,19 +146,41 @@ Android will refuse to install it.
 
 ## Build
 
-Local build needs JDK 17 and Android SDK platform 34:
+Local build needs JDK 17 and Android SDK platform 34 + build-tools 34.0.0:
 
 ```bash
 export ANDROID_SDK_ROOT=/path/to/android-sdk
-gradle :app:assembleRelease
-# or, with the wrapper
+export JAVA_HOME=/path/to/jdk-17
 ./gradlew :app:assembleRelease
 ```
+
+If the SDK is not in a default location, either export `ANDROID_SDK_ROOT` or write
+`sdk.dir=/path/to/android-sdk` into `local.properties` (git-ignored). The wrapper
+fetches Gradle 8.2 on first run, so the first build also needs network access.
 
 Output: `app/build/outputs/apk/release/app-release.apk`.
 
 GitHub Actions builds the same variant on every push to `app/**` and uploads the
 APK as the `Moonlight-APK` artifact after verifying the signature with `apksigner`.
+
+### Verified build
+
+This tree was built and checked with Temurin JDK 17.0.21, Android SDK platform 34
+and build-tools 34.0.0:
+
+```
+BUILD SUCCESSFUL in 2m 14s
+39 actionable tasks: 37 executed, 2 from cache
+```
+
+`apksigner verify` on the produced APK reports the committed Moonlight certificate,
+and `aapt2 dump badging` reports `com.moonlight.bedrockclient`, versionCode 2,
+versionName 2.0.0, minSdk 26, targetSdk 34, launchable `MainActivity`, and no
+`native-code` entry (the APK carries zero native libraries by design).
+
+The APK has **not** been run against a live Minecraft install. Everything above is
+build- and packaging-level verification; the in-game behaviour of hook-only modules
+still depends on attaching a hook as described at the top of this file.
 
 ---
 
@@ -181,3 +201,14 @@ app/src/main/java/com/moonlight/bedrockclient/
    ├─ EyeHandleView.kt          Freelook eye shortcut bubble
    └─ GuiTheme.kt               accent presets and palette
 ```
+
+---
+
+## Third-party archives
+
+An earlier revision of this repository carried `LuminaClient-main.zip`, an unrelated
+third-party Bedrock client (Pixie/ImGui GUI, protocol relay, Xbox auth). It was never
+imported into this project: 0 of its 9,867 files are referenced anywhere in the
+Gradle build or the Kotlin sources. The archive has been removed from the working
+tree and `LuminaClient*.zip` is now git-ignored. It remains recoverable from git
+history if you need it back.
