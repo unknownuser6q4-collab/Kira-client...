@@ -67,6 +67,14 @@ object HostBridge {
             }
         }
 
+        // Keep the native hook registry honest: it only reports attached when a real
+        // heartbeat was observed here, never because a module toggle was flipped.
+        if (hooked) {
+            NativeEngine.hookHeartbeat(pid, hookVersion)
+        } else {
+            NativeEngine.hookDetach()
+        }
+
         val rooted = ROOT_PATHS.any { path -> File(path).exists() }
         return Status(installed, versionName, hooked, pid, hookVersion, ageSeconds, rooted)
     }

@@ -27,7 +27,10 @@ class ConfigStore(context: Context) {
     fun load() {
         values.clear()
         enabled.clear()
-        if (!configFile.exists()) return
+        if (!configFile.exists()) {
+            syncNative()
+            return
+        }
         try {
             val root = JSONObject(configFile.readText())
             root.optJSONArray("enabled")?.let { array ->
@@ -51,6 +54,19 @@ class ConfigStore(context: Context) {
             values.clear()
             enabled.clear()
         }
+        syncNative()
+    }
+
+    /**
+     * Pushes the current module state into the native mirror and starts its scheduler.
+     *
+     * No-op when the arm64 library is missing, so the app still works on builds
+     * produced without the NDK.
+     */
+    private fun syncNative() {
+        if (!NativeEngine.available) return
+        NativeEngine.start()
+        NativeEngine.syncAll(ModuleRegistry.modules.map { it.id }, enabled)
     }
 
     private fun backupCorruptFile() {
@@ -97,6 +113,7 @@ class ConfigStore(context: Context) {
 
     fun setEnabled(moduleId: String, value: Boolean) {
         if (value) enabled.add(moduleId) else enabled.remove(moduleId)
+        NativeEngine.setEnabled(moduleId, value)
     }
 
     fun enabledIds(): List<String> = enabled.sorted()
@@ -151,6 +168,7 @@ class ConfigStore(context: Context) {
         values.clear()
         enabled.clear()
         persist()
+        syncNative()
     }
 
     /** Replaces the in-memory configuration with the contents of an exported file. */
@@ -178,6 +196,7 @@ class ConfigStore(context: Context) {
         enabled.clear()
         enabled.addAll(nextEnabled)
             persist()
+            syncNative()
             true
         } catch (error: Throwable) {
             Log.e(TAG, "Failed to import config", error)

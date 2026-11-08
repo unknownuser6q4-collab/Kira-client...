@@ -122,9 +122,10 @@ These were the underlying problems, all fixed in this tree:
    Moonlight's own process, so they could never touch Minecraft, while still
    forcing an NDK download and two ABI build variants. An app that declares
    `arm64-v8a` and `armeabi-v7a` but ships mismatched native code is a common cause
-   of install and launch failures on 32-bit capable devices. The native targets are
-   gone: the APK is now pure Kotlin with **zero native libraries**, so it installs
-   on every ABI and cannot fail an ABI check.
+   of install and launch failures on 32-bit capable devices. Those targets were
+   removed. A new, honest native engine now ships **one** `arm64-v8a` library (see
+   [Native engine](#native-engine)); the manifest advertises only that ABI, so the
+   declared and shipped ABIs always match.
 5. **A `wrap.sh` in `src/main/resources`** was never packaged into the APK and
    hinted at `LD_PRELOAD` injection that Android will not perform for you. Removed.
 6. **Portrait-only activity** was wrong for a landscape game overlay. The launcher
@@ -175,8 +176,8 @@ BUILD SUCCESSFUL in 2m 14s
 
 `apksigner verify` on the produced APK reports the committed Moonlight certificate,
 and `aapt2 dump badging` reports `com.moonlight.bedrockclient`, versionCode 2,
-versionName 2.0.0, minSdk 26, targetSdk 34, launchable `MainActivity`, and no
-`native-code` entry (the APK carries zero native libraries by design).
+versionName 2.0.0, minSdk 26, targetSdk 34, launchable `MainActivity`, and
+`native-code: 'arm64-v8a'` — exactly the single library the build produces.
 
 The APK has **not** been run against a live Minecraft install. Everything above is
 build- and packaging-level verification; the in-game behaviour of hook-only modules
@@ -195,12 +196,49 @@ app/src/main/java/com/moonlight/bedrockclient/
 │  ├─ Module.kt                 category, setting and module model
 │  ├─ ModuleRegistry.kt         the full module catalogue
 │  ├─ ConfigStore.kt            JSON persistence, import/export, ConfigHolder
-│  └─ HostBridge.kt             Minecraft install, root and hook heartbeat detection
+│  ├─ HostBridge.kt             Minecraft install, root and hook heartbeat detection
+│  └─ NativeEngine.kt           JNI front door, safe no-op without the library
 └─ ui/
    ├─ ClickGuiView.kt           custom drawn panel, search keyboard, touch handling
    ├─ EyeHandleView.kt          Freelook eye shortcut bubble
    └─ GuiTheme.kt               accent presets and palette
+app/src/main/cpp/
+├─ CMakeLists.txt               single arm64-v8a shared library
+├─ engine.cpp                  100 Hz scheduler thread and timing telemetry
+├─ module_manager.cpp          thread-safe C++ mirror of the module catalogue
+├─ hook_registry.cpp           attached/detached/stale bridge state
+└─ jni_bridge.cpp              the JNI surface behind NativeEngine.kt
 ```
+
+---
+
+## Native engine
+
+`app/src/main/cpp` builds `libmoonlight_engine.so` for **arm64-v8a only**, using the
+pinned NDK `26.1.10909125` and CMake `3.22.1`.
+
+| File | Role |
+| --- | --- |
+| `engine.cpp` | one worker thread at 100 Hz, start/stop, tick/mean/peak microsecond telemetry |
+| `module_manager.cpp` | mutex-guarded registry of module ids, enabled flags and toggle counters |
+| `hook_registry.cpp` | `attached` / `stale` / `detached` state for an in-process bridge |
+| `jni_bridge.cpp` | the symbols `core/NativeEngine.kt` calls |
+
+Wiring: `ConfigStore` pushes each toggle into the native mirror
+(`NativeEngine.setEnabled`), and re-syncs the whole catalogue on load, import and
+reset. The `About` page shows a `Native engine` row reading real counters from the
+running thread (`arm64-v8a 100Hz <ticks> ticks, <us> mean, <n>/<m> enabled`).
+
+**What it does not do:** change Minecraft. The library loads into Moonlight's own
+process, so it has no access to the game's memory. `HookRegistry` therefore starts
+`detached`, and only reports `attached` when `HostBridge` sees a genuine heartbeat at
+`files/moonlight-bridge/status.json`. Hook-only modules keep their inactive label
+until that happens; the native layer never fabricates the state.
+
+Because the APK ships one arm64 library and declares only that ABI, it installs on
+arm64 devices (which is what 64-bit Bedrock requires). On a 32-bit device
+`NativeEngine.available` is `false` and every call is a no-op — though the APK itself
+will not install there.
 
 ---
 

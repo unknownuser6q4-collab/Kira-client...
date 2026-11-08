@@ -497,6 +497,7 @@ object ModuleRegistry {
                     val status = RuntimeStatus.current
                     if (status.hooked) "${status.hookAgeSeconds}s ago" else "never"
                 },
+                label("native", "Native engine") { NativeEngine.describe() },
                 action("recheck", "Re-check host")
             )
         )
